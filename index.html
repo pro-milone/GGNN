@@ -36,6 +36,9 @@
 
 <h1>My Flipbook</h1>
 <div id="flipbook"></div>
+<button id="prev">← Previous</button>
+<button id="next">Next →</button>
+
 
 <script>
   // 1. Path to your PDF (put your PDF file in the repo root)
@@ -76,6 +79,14 @@
         height: 600,
         autoCenter: true
       });
+      // Add manual controls
+      document.getElementById('prev').addEventListener('click', function() {
+        $('#flipbook').turn('previous');
+});
+document.getElementById('next').addEventListener('click', function() {
+  $('#flipbook').turn('next');
+});
+
     });
   });
 </script>

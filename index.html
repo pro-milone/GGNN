@@ -1,93 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GAY GUY NEWS NETWORK</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/blasten/turn.js/turn.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
-  <style>
-    body {
-      background:#f7ded7;
-      font-family:sans-serif;
-      text-align:center;
-    }
-    #flipbook {
-      width:90%;
-      max-width:1600px;
-      height:1200px;
-      margin:2rem auto;
-    }
-    #flipbook .page {
-      width:50%;
-      height:100%;
-      background:white;
-      cursor:pointer;
-    }
-    canvas {
-      width:100%;
-      height:100%;
-    }
-  </style>
-</head>
-<body>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #f7ded7;
+    font-family: sans-serif;
+    text-align: center;
+    overflow: hidden; /* optional: hides scrollbars */
+  }
 
-<div id="flipbook"></div>
+  #flipbook {
+    width: auto;
+    height: 95vh; /* 95% of viewport height */
+    max-width: 90vw; /* avoid being too wide */
+    margin: auto;
+    position: relative;
+  }
 
-<script>
-const pdfPages = [
-  '00A.pdf','00B.pdf','01.pdf','02.pdf','03.pdf','04.pdf',
-  '05.pdf','06.pdf','07.pdf','08.pdf','09.pdf','11.pdf',
-  '12.pdf','13.pdf','14.pdf','15.pdf','16.pdf','17.pdf',
-  '18.pdf','99.pdf' // ensure even number of pages
-];
+  #flipbook .page {
+    width: 50%;       /* half of the flipbook width */
+    height: 100%;     /* full flipbook height */
+    background: white;
+    cursor: pointer;
+  }
 
-const flipbook = document.getElementById('flipbook');
-
-Promise.all(pdfPages.map(pdfPath =>
-  pdfjsLib.getDocument(pdfPath).promise.then(pdf =>
-    pdf.getPage(1).then(page => {
-      const viewport = page.getViewport({scale:1.5});
-      const canvas = document.createElement('canvas');
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      const ctx = canvas.getContext('2d');
-      return page.render({canvasContext:ctx, viewport}).promise.then(()=>canvas);
-    })
-  )
-)).then(canvases => {
-  canvases.forEach(canvas => {
-    const pageDiv = document.createElement('div');
-    pageDiv.classList.add('page');
-    pageDiv.appendChild(canvas);
-    flipbook.appendChild(pageDiv);
-  });
-
-  $('#flipbook').turn({
-    width:800,
-    height:600,
-    autoCenter:true
-  });
-
-  // Click navigation
-  $('#flipbook').on('click', function(e){
-    const rect = flipbook.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    if(clickX < rect.width/2){
-      $(this).turn('previous');
-    } else {
-      $(this).turn('next');
-    }
-  });
-
-  // Keyboard navigation
-  document.addEventListener('keydown', e => {
-    if(e.key === 'ArrowLeft') $('#flipbook').turn('previous');
-    if(e.key === 'ArrowRight') $('#flipbook').turn('next');
-  });
-});
-</script>
-
-</body>
-</html>
+  canvas {
+    width: 100%;
+    height: 100%;
+  }
+</style>

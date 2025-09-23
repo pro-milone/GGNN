@@ -42,10 +42,10 @@
 
 <script>
 const pdfPages = [
-  '00A.pdf','00B.pdf'//,'01.pdf','02.pdf','03.pdf','04.pdf',
-  //'05.pdf','06.pdf','07.pdf','08.pdf','09.pdf','11.pdf',
-  //'12.pdf','13.pdf','14.pdf','15.pdf','16.pdf','17.pdf',
-  //'18.pdf','99.pdf' // even number of pages
+  '00A.pdf','00B.pdf','01.pdf','02.pdf','03.pdf','04.pdf',
+  '05.pdf','06.pdf','07.pdf','08.pdf','09.pdf','11.pdf',
+  '12.pdf','13.pdf','14.pdf','15.pdf','16.pdf','17.pdf',
+  '18.pdf','99.pdf' // even number of pages
 ];
 
 const flipbook = document.getElementById('flipbook');
@@ -55,4 +55,75 @@ const pageAspect = 1.414; // height / width of one page
 const spreadAspect = pageAspect / 2; // height / width for two pages side-by-side ≈ 0.707
 
 function getFlipbookSize() {
-  // we want the largest size that fits in the viewport whi
+  // we want the largest size that fits in the viewport while preserving aspect ratio
+  const maxW = window.innerWidth * 0.95;
+  const maxH = window.innerHeight * 0.95;
+
+  // height = spreadAspect * width
+  // so width = height / spreadAspect
+  let width = maxW;
+  let height = width * spreadAspect;
+
+  if (height > maxH) {
+    // too tall, shrink width
+    height = maxH;
+    width = height / spreadAspect;
+  }
+
+  return { width, height };
+}
+
+Promise.all(pdfPages.map(pdfPath =>
+  pdfjsLib.getDocument(pdfPath).promise.then(pdf =>
+    pdf.getPage(1).then(page => {
+      const viewport = page.getViewport({scale:1.5});
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext('2d');
+      return page.render({canvasContext:ctx, viewport}).promise.then(()=>canvas);
+    })
+  )
+)).then(canvases => {
+  canvases.forEach(canvas => {
+    const pageDiv = document.createElement('div');
+    pageDiv.classList.add('page');
+    pageDiv.appendChild(canvas);
+    flipbook.appendChild(pageDiv);
+  });
+
+  const size = getFlipbookSize();
+
+  $('#flipbook').turn({
+    width: size.width,
+    height: size.height,
+    autoCenter:true
+  });
+
+  // resize on window change
+  $(window).on('resize', () => {
+    const s = getFlipbookSize();
+    $('#flipbook').turn('size', s.width, s.height);
+  });
+
+  // click navigation
+  $('#flipbook').on('click', function(e){
+    const rect = flipbook.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    if(clickX < rect.width/2){
+      $(this).turn('previous');
+    } else {
+      $(this).turn('next');
+    }
+  });
+
+  // keyboard navigation
+  document.addEventListener('keydown', e => {
+    if(e.key === 'ArrowLeft') $('#flipbook').turn('previous');
+    if(e.key === 'ArrowRight') $('#flipbook').turn('next');
+  });
+});
+</script>
+
+</body>
+</html>

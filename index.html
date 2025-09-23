@@ -7,40 +7,33 @@
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/blasten/turn.js/turn.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
-    <style>
-      html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  background: #f7ded7;
-  font-family: sans-serif;
-  text-align: center;
-  overflow: hidden; /* optional: hides scrollbars */
-}
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #f7ded7;
+      font-family: sans-serif;
+      text-align: center;
+      overflow: hidden; /* optional */
+    }
 
-#flipbook {
-  /* pick the smaller of viewport width or height for the height of flipbook */
-  height: 20vh; /* adjust 1.2 to your page aspect ratio (height/width) */
-  width: 20vw ;  /* adjust 1.2 to your page aspect ratio (height/width) */
-  margin: 1rem auto 0;
-  position: relative;
-}
+    #flipbook {
+      margin: 1rem auto 0; /* small top margin */
+      position: relative;
+    }
 
-#flipbook .page {
-  width: 50%;
-  height: 100%;
-  background: white;
-  cursor: pointer;
-}
+    #flipbook .page {
+      width: 50%;
+      height: 100%;
+      background: white;
+      cursor: pointer;
+    }
 
-canvas {
-  width: 100%;
-  height: 100%;
-}
-
-
-
+    canvas {
+      width: 100%;
+      height: 100%;
+    }
   </style>
 </head>
 <body>
@@ -48,7 +41,12 @@ canvas {
 <div id="flipbook"></div>
 
 <script>
-const pdfPages = ['Alternative_double_copy_paper.pdf'];
+const pdfPages = [
+  '00A.pdf','00B.pdf','01.pdf','02.pdf','03.pdf','04.pdf',
+  '05.pdf','06.pdf','07.pdf','08.pdf','09.pdf','11.pdf',
+  '12.pdf','13.pdf','14.pdf','15.pdf','16.pdf','17.pdf',
+  '18.pdf','99.pdf' // even number of pages
+];
 
 const flipbook = document.getElementById('flipbook');
 
@@ -71,13 +69,17 @@ Promise.all(pdfPages.map(pdfPath =>
     flipbook.appendChild(pageDiv);
   });
 
+  // set width/height based on viewport at init:
+  const flipbookWidth = window.innerWidth * 0.95;
+  const flipbookHeight = window.innerHeight * 0.95;
+
   $('#flipbook').turn({
-    width:100%,
-    height:100%,
+    width: flipbookWidth,
+    height: flipbookHeight,
     autoCenter:true
   });
 
-  // Click navigation
+  // click navigation
   $('#flipbook').on('click', function(e){
     const rect = flipbook.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
@@ -88,7 +90,7 @@ Promise.all(pdfPages.map(pdfPath =>
     }
   });
 
-  // Keyboard navigation
+  // keyboard navigation
   document.addEventListener('keydown', e => {
     if(e.key === 'ArrowLeft') $('#flipbook').turn('previous');
     if(e.key === 'ArrowRight') $('#flipbook').turn('next');

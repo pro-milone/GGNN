@@ -15,7 +15,7 @@
       background: #f7ded7;
       font-family: sans-serif;
       text-align: center;
-      overflow: hidden; /* optional */
+      overflow: hidden;
     }
 
     #flipbook {
@@ -24,7 +24,7 @@
     }
 
     #flipbook .page {
-      width: 50%;
+      width: 50%; /* each page takes half of the flipbook width */
       height: 100%;
       background: white;
       cursor: pointer;
@@ -42,58 +42,17 @@
 
 <script>
 const pdfPages = [
-  '00A.pdf','00B.pdf' // even number of pages
+  '00A.pdf','00B.pdf'//,'01.pdf','02.pdf','03.pdf','04.pdf',
+  //'05.pdf','06.pdf','07.pdf','08.pdf','09.pdf','11.pdf',
+  //'12.pdf','13.pdf','14.pdf','15.pdf','16.pdf','17.pdf',
+  //'18.pdf','99.pdf' // even number of pages
 ];
 
 const flipbook = document.getElementById('flipbook');
 
-Promise.all(pdfPages.map(pdfPath =>
-  pdfjsLib.getDocument(pdfPath).promise.then(pdf =>
-    pdf.getPage(1).then(page => {
-      const viewport = page.getViewport({scale:1.5});
-      const canvas = document.createElement('canvas');
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      const ctx = canvas.getContext('2d');
-      return page.render({canvasContext:ctx, viewport}).promise.then(()=>canvas);
-    })
-  )
-)).then(canvases => {
-  canvases.forEach(canvas => {
-    const pageDiv = document.createElement('div');
-    pageDiv.classList.add('page');
-    pageDiv.appendChild(canvas);
-    flipbook.appendChild(pageDiv);
-  });
+// A4 aspect ratio
+const pageAspect = 1.414; // height / width of one page
+const spreadAspect = pageAspect / 2; // height / width for two pages side-by-side ≈ 0.707
 
-  // set width/height based on viewport at init:
-  const flipbookWidth = window.innerWidth * 0.95;
-  const flipbookHeight = window.innerHeight * 0.95;
-
-  $('#flipbook').turn({
-    width: flipbookWidth,
-    height: flipbookHeight,
-    autoCenter:true
-  });
-
-  // click navigation
-  $('#flipbook').on('click', function(e){
-    const rect = flipbook.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    if(clickX < rect.width/2){
-      $(this).turn('previous');
-    } else {
-      $(this).turn('next');
-    }
-  });
-
-  // keyboard navigation
-  document.addEventListener('keydown', e => {
-    if(e.key === 'ArrowLeft') $('#flipbook').turn('previous');
-    if(e.key === 'ArrowRight') $('#flipbook').turn('next');
-  });
-});
-</script>
-
-</body>
-</html>
+function getFlipbookSize() {
+  // we want the largest size that fits in the viewport whi

@@ -6,7 +6,6 @@
   <title>GAY GUY NEWS NETWORK</title>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/blasten/turn.js/turn.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
   <style>
     html, body {
       margin: 0;
@@ -30,9 +29,11 @@
       cursor: pointer;
     }
 
-    canvas {
+    img.page-image {
       width: 100%;
       height: 100%;
+      object-fit: cover; /* fill page area */
+      display: block;
     }
   </style>
 </head>
@@ -41,11 +42,28 @@
 <div id="flipbook"></div>
 
 <script>
-const pdfPages = [
-  '00A.pdf','00B.pdf','01.pdf','02.pdf','03.pdf','04.pdf',
-  '05.pdf','06.pdf','07.pdf','08.pdf','09.pdf','11.pdf',
-  '12.pdf','13.pdf','14.pdf','15.pdf','16.pdf','17.pdf',
-  '18.pdf','99.pdf' // even number of pages
+// PNG page paths
+const pngPages = [
+'png3x/00A-FRONT COVER.png',
+'png3x/00B-CONTRIBUTORS.png',
+'png3x/01-IN THIS EDITION.png',
+'png3x/02-MISSION STATEMENT.png',
+'png3x/03-RECOMMENDED READING.png',
+'png3x/04-THINGS WE LIKE-1.png',
+'png3x/05-THINGS WE LIKE-2.png',
+'png3x/06-OBITUARIES.png',	
+'png3x/07-CRAFTERNOON'S.png',	
+'png3x/08-SLOPPING THE BEAST-1.png',
+'png3x/09-SLOPPING THE BEAST-2.png',
+'png3x/11-AGONY GUNCLE.png',
+'png3x/12-EVENTS-0.png',
+'png3x/13-EVENTS-1.png',
+'png3x/14-EVENTS-2.png',
+'png3x/15-EVENTS-3.png',
+'png3x/16-EVENTS-4.png',
+'png3x/17-EVENTS-00.png',
+'png3x/18-WELL YESSS.png',
+'png3x/99-BACK COVER.png'// even number of pages
 ];
 
 const flipbook = document.getElementById('flipbook');
@@ -55,12 +73,11 @@ const pageAspect = 1.414; // height / width of one page
 const spreadAspect = pageAspect / 2; // height / width for two pages side-by-side ≈ 0.707
 
 function getFlipbookSize() {
-  // we want the largest size that fits in the viewport while preserving aspect ratio
+  // largest size that fits viewport while preserving aspect ratio
   const maxW = window.innerWidth * 0.95;
   const maxH = window.innerHeight * 0.95;
 
   // height = spreadAspect * width
-  // so width = height / spreadAspect
   let width = maxW;
   let height = width * spreadAspect;
 
@@ -73,55 +90,49 @@ function getFlipbookSize() {
   return { width, height };
 }
 
-Promise.all(pdfPages.map(pdfPath =>
-  pdfjsLib.getDocument(pdfPath).promise.then(pdf =>
-    pdf.getPage(1).then(page => {
-      const viewport = page.getViewport({scale:1.5});
-      const canvas = document.createElement('canvas');
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      const ctx = canvas.getContext('2d');
-      return page.render({canvasContext:ctx, viewport}).promise.then(()=>canvas);
-    })
-  )
-)).then(canvases => {
-  canvases.forEach(canvas => {
-    const pageDiv = document.createElement('div');
-    pageDiv.classList.add('page');
-    pageDiv.appendChild(canvas);
-    flipbook.appendChild(pageDiv);
-  });
+// Build pages
+pngPages.forEach(src => {
+  const pageDiv = document.createElement('div');
+  pageDiv.classList.add('page');
 
-  const size = getFlipbookSize();
+  const img = document.createElement('img');
+  img.src = src;
+  img.classList.add('page-image');
 
-  $('#flipbook').turn({
-    width: size.width,
-    height: size.height,
-    autoCenter:true
-  });
+  pageDiv.appendChild(img);
+  flipbook.appendChild(pageDiv);
+});
 
-  // resize on window change
-  $(window).on('resize', () => {
-    const s = getFlipbookSize();
-    $('#flipbook').turn('size', s.width, s.height);
-  });
+// Init turn.js with computed size
+const size = getFlipbookSize();
 
-  // click navigation
-  $('#flipbook').on('click', function(e){
-    const rect = flipbook.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    if(clickX < rect.width/2){
-      $(this).turn('previous');
-    } else {
-      $(this).turn('next');
-    }
-  });
+$('#flipbook').turn({
+  width: size.width,
+  height: size.height,
+  autoCenter:true
+});
 
-  // keyboard navigation
-  document.addEventListener('keydown', e => {
-    if(e.key === 'ArrowLeft') $('#flipbook').turn('previous');
-    if(e.key === 'ArrowRight') $('#flipbook').turn('next');
-  });
+// resize on window change
+$(window).on('resize', () => {
+  const s = getFlipbookSize();
+  $('#flipbook').turn('size', s.width, s.height);
+});
+
+// click navigation
+$('#flipbook').on('click', function(e){
+  const rect = flipbook.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  if(clickX < rect.width/2){
+    $(this).turn('previous');
+  } else {
+    $(this).turn('next');
+  }
+});
+
+// keyboard navigation
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowLeft') $('#flipbook').turn('previous');
+  if(e.key === 'ArrowRight') $('#flipbook').turn('next');
 });
 </script>
 
